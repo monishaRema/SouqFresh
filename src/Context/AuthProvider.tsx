@@ -1,78 +1,68 @@
-import { useEffect, useState } from "react";
-
+import React, { useEffect, useState } from "react";
+import type { User, UserCredential } from "firebase/auth";
 import {
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
+  GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  updateProfile,
-  GoogleAuthProvider
+  onAuthStateChanged,      
 } from "firebase/auth";
 import { auth } from "../Firebase/Firebase.config";
 import { AuthContext } from "./AuthContext";
+import type { AuthContextType } from "./AuthContext";
 
+type AuthProviderProps = {
+  children: React.ReactNode;
+};
 
-
-const AuthProvider = ({ children }) => {
-
-  const googleprovider = new GoogleAuthProvider();
-  const [user, setUser] = useState(null);
+const AuthProvider = ({ children }: AuthProviderProps) => {
+  const googleProvider = new GoogleAuthProvider();
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const CreateUser = (email, password) => {
-    setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const Login = (email, passowrd) => {
-    setLoading(true);
-    return signInWithEmailAndPassword(auth, email, passowrd);
-  };
-
-  const GoogleSignIn = () => {
-    setLoading(true);
-    return signInWithPopup(auth, googleprovider);
-  };
-
-  const LogOut = () => {
-    setLoading(true);
-    return signOut(auth);
-  };
-
-  const ForgotPass = (email) => {
-    return sendPasswordResetEmail(auth, email);
-  };
-  const UpdateUser = (userData) => {
-    return updateProfile(auth.currentUser, userData);
-  };
- 
+  // Observer for Firebase Auth State
   useEffect(() => {
-    const unSubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-    return () => {
-      unSubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
+  const CreateUser = (email: string, password: string): Promise<UserCredential> => {
+    return createUserWithEmailAndPassword(auth, email, password);
+  };
 
+  const Login = (email: string, password: string ): Promise<UserCredential> => {
+    return signInWithEmailAndPassword(auth, email,password);
+  };
 
-  const userInfo = {
+  const GoogleSignIn = (): Promise<UserCredential> => {
+    return signInWithPopup(auth, googleProvider);
+  };
+
+  const Logout = (): Promise<void> => {
+    return signOut(auth);
+  };
+
+  
+  const userInfo: AuthContextType & { loading: boolean } = {
     user,
     setUser,
-    loading,
     CreateUser,
     Login,
     GoogleSignIn,
-    LogOut,
-    ForgotPass,
-    UpdateUser,
+    Logout,
+    loading,
   };
 
-  return <AuthContext value={userInfo}>{children}</AuthContext>;
+  return (
+    <AuthContext.Provider value={userInfo}>
+      {/* Optionally show a loader/spinner while checking user */}
+      {loading ? <div className="text-center py-10">Loading...</div> : children}
+    </AuthContext.Provider>
+  );
 };
 
 export default AuthProvider;

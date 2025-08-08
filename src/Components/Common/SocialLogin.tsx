@@ -2,12 +2,16 @@
 import { FaGoogle } from "react-icons/fa";
 
 import useAuth from "../../Hooks/useAuth";
+import { useNavigate } from "react-router";
 
 const SocialLogin = () => {
   const {GoogleSignIn} = useAuth()
+  const navigate = useNavigate()
   const handleGoogle = ()=>{
     GoogleSignIn()
-    .then(res => console.log(res))
+    .then(res => {
+      navigate('/')
+    })
   }
    return (
     <button

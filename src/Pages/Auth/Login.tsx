@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { use, useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Helmet } from "@dr.pogodin/react-helmet";
 import { siteTitle } from "../../Libs/Utility";
 import { AuthContext } from "../../Context/AuthContext";
@@ -17,6 +17,7 @@ const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormInputs>();
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate()
 
   // 2. Use context, handle possible null (optional for safety)
   const auth = use(AuthContext);
@@ -62,7 +63,7 @@ const Login = () => {
       .then((result) => {
         setUser(result.user);
         // Optionally redirect or show success
-        // e.g. navigate("/dashboard");
+        navigate("/");
       })
       .catch((err: any) => {
         setErrorMessage("Invalid email or password.");
